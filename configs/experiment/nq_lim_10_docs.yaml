@@ -1,0 +1,55 @@
+dataset:
+  name: nq_lim
+  dataset_config:
+    total_docs: 10
+    gold_at: [0, 3, 5, 7, 9]
+    train_ratio: 0.8
+    seed: 42
+    num_train_samples: null
+    num_val_samples: null
+    include_support: false
+    cache_dir: '/juice/scr/scr110/scr/nlp/data/lost-in-the-middle/qa_data'
+  pretrained_model_config: 
+    pretrained_model_name_or_path: 'mistralai/Mistral-7B-v0.1'
+    cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
+  preprocess_config: null
+
+dataloader:
+  batch_size: 1
+  num_workers: 2
+  drop_last: false
+  pin_memory: true
+
+optimizer:
+  optim: adamw  # _torch_fused
+  lr: 1e-3
+  weight_decay: 5e-4
+
+lr_scheduler:
+  lr_scheduler_type: none
+
+trainer:  # HuggingFace Trainer-like arguments  
+  name: sft
+  bf16: true
+  train_split: train_contrast
+  val_split: val_contrast
+  num_train_epochs: 5
+  gradient_accumulation_steps: 8
+  seed: 42
+  batch_size: 1
+  load_best_model_at_end: true
+  greater_is_better: false
+  metric_for_best_model: eval/loss
+  logging_steps: 100
+  evaluation_strategy: steps
+  max_steps: -1
+  eval_steps: 100
+  max_eval_batches: null
+
+evaluate:
+  max_new_tokens: 128
+  max_samples: 100
+  negative_sample: false
+  print_outputs: false
+  
+  
