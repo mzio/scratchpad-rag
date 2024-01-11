@@ -30,8 +30,8 @@ lr_scheduler:
 trainer:  # HuggingFace Trainer-like arguments  
   name: sft
   bf16: true
-  train_split: train_contrast
-  val_split: val_contrast
+  train_split: train_lm_anc
+  val_split: val_lm_anc
   num_train_epochs: 5
   gradient_accumulation_steps: 8
   seed: 42
