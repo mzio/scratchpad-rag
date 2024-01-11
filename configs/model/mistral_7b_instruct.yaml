@@ -1,0 +1,10 @@
+pretrained_config:
+  pretrained_model_name_or_path: 'mistralai/Mistral-7B-Instruct-v0.1'
+  cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
+  return_dict: true
+  quantization: false
+  device_map: auto
+  low_cpu_mem_usage: true
+  torch_dtype: bfloat16
+  rope_theta: 10000.0
+  use_flash_attention_2: true
