@@ -3,8 +3,13 @@ Improving robustness of models over long(er) contexts
 
 ## Known dependencies
 ```
-torch
-
+pytorch 2
+omegaconf
+transformers
+datasets
+tqdm
+numpy
+matplotlib
 ```
 
 ## Example commands
