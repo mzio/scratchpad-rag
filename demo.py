@@ -10,7 +10,7 @@ python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b
 python demo.py --experiment_config nq_lim_20_docs --model_config llama2_7b_32k_instruct
 
 (cmd 4)
-python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b --checkpoint_path ./checkpoints/scratchpad_rag.pt
+python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b --checkpoint_path ./checkpoints/mistral_7b/scratchpad_rag.pt
 """
 from os.path import join
 from xopen import xopen
