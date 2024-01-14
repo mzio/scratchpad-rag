@@ -24,7 +24,7 @@ from evaluate.subspan_em import evaluate_mqa, plot_histogram_em, plot_lineplot_e
 def get_args():
     parser = argparse.ArgumentParser()
     # Specify configs
-    parser.add_argument("--project_name", type=str, default='nq_lim_lora_trainer')
+    parser.add_argument("--project_name", type=str, default='scratchpad_rag')
     parser.add_argument("--experiment_config", type=str, default=None)
     parser.add_argument("--model_config", type=str, default=None)
     parser.add_argument("--peft_config", type=str, default=None)
@@ -50,6 +50,7 @@ def get_args():
     parser.add_argument("--num_workers", type=int, default=None)
 
     ## Evaluation
+    parser.add_argument("--retrieve_topk", type=int, default=None)
     parser.add_argument("--load_checkpoint", default=False, action='store_true')
     parser.add_argument("--checkpoint_path", type=str, default=None)
     parser.add_argument("--eval_steps", type=int, default=None)
@@ -103,6 +104,10 @@ def create_peft_config(model, peft_config: dict):
 
 def set_eval_config_and_args(config, args):
     """Patchy updates for final evaluation"""
+    if args.retrieve_topk is not None:
+        args.run_name += f'-topk={args.retrieve_topk}'
+        config.dataset.dataset_config['retrieve_topk'] = args.retrieve_topk
+    
     if args.print_outputs is not None:
         config.evaluate.print_outputs = args.print_outputs
 
@@ -163,6 +168,7 @@ def main():
     # Override default run name with checkpoint
     if args.checkpoint_path is not None:
         args.run_name = args.checkpoint_path.split('/')[-1].split('.pt')[0]
+    _, args = set_eval_config_and_args(experiment_config, args)  # Add back eval configs
 
     # Get data
     dataloaders  = load_data(experiment_config.dataset, experiment_config.dataloader)
@@ -250,7 +256,7 @@ def main():
     eval_metrics = evaluate_mqa(model, eval_loader, tokenizer, **experiment_config.evaluate)
     print_header('Final metrics')
     mean_em = sum(eval_metrics['subspan_em']) / len(eval_metrics['subspan_em'])
-    print(f'-> Overall Subspan Exact Match: {mean_em:.4f}')
+    print(f'├── Overall Subspan Exact Match: {mean_em:.4f}')
 
     logging_metrics = {'Overall EM': mean_em}
     # Slice by supporting document index
