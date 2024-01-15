@@ -7,4 +7,4 @@ pretrained_config:
   low_cpu_mem_usage: true
   torch_dtype: bfloat16
   rope_theta: 10000.0
-  use_flash_attention_2: true
+  attn_implementation: flash_attention_2

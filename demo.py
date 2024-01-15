@@ -10,7 +10,7 @@ python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b
 python demo.py --experiment_config nq_lim_20_docs --model_config llama2_7b_32k_instruct
 
 (cmd 4)
-python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b --checkpoint_path ./checkpoints/mistral_7b/scratchpad_rag.pt
+python demo.py --experiment_config nq_lim_20_docs_local --model_config mistral_7b --checkpoint_path ./checkpoints/mistral_7b/scratchpad_rag.pt
 """
 from os.path import join
 from xopen import xopen
@@ -153,22 +153,6 @@ def generate_response(model, prompt, tokenizer, max_new_tokens: int):
                                   skip_special_tokens=True)
         output = output.split('Answer:')[-1]
         return output
-    # model_input_args = ['input_ids', 'attention_mask', 'labels']
-    # model.eval()
-    # with torch.no_grad():
-    #     _input_ids = data['input_ids']
-    #     breakpoint()
-    #     outputs = model.generate(**data,
-    #         # **{k: v.to(model.device) for k, v in data.items()
-    #            # if k in model_input_args},
-    #         max_new_tokens=max_new_tokens,
-    #         pad_token_id=tokenizer.eos_token_id,
-    #     )
-    #     for sample_idx in range(len(_input_ids)):
-    #         outputs = outputs[sample_idx:sample_idx+1, len(_input_ids[sample_idx]):]
-    #     outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-    # return outputs
-
 
 # Copied from https://github.com/facebookresearch/llama-recipes/blob/main/examples/quickstart.ipynb
 def create_peft_config(model, peft_config: dict):
