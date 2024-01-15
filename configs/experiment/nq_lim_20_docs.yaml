@@ -8,7 +8,7 @@ dataset:
     num_train_samples: null
     num_val_samples: null
     include_support: false
-    cache_dir: '/juice/scr/scr110/scr/nlp/data/lost-in-the-middle/qa_data'
+    cache_dir: './data/qa_data'
   pretrained_model_config: 
     pretrained_model_name_or_path: 'mistralai/Mistral-7B-v0.1'
     cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
@@ -22,8 +22,8 @@ dataloader:
 
 optimizer:
   optim: adamw  # _torch_fused
-  lr: 1e-3
-  weight_decay: 5e-4
+  lr: 1e-4
+  weight_decay: 0.01
 
 lr_scheduler:
   lr_scheduler_type: none

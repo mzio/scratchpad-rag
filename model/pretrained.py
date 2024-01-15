@@ -3,8 +3,8 @@ Classes for loading pretrained models
 """
 import torch
 from os.path import join
-from transformers import LlamaForCausalLM, LlamaTokenizer, MistralForCausalLM
-from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import LlamaForCausalLM, LlamaTokenizer
+from transformers import MistralForCausalLM, AutoTokenizer
 
 
 def get_pretrained_loader(pretrained_model_name_or_path: str, 
@@ -16,11 +16,6 @@ def get_pretrained_loader(pretrained_model_name_or_path: str,
         )
     elif 'mistral' in pretrained_model_name_or_path:
         return PretrainedMistralLoader(
-            pretrained_model_name_or_path=pretrained_model_name_or_path,
-            **model_kwargs,
-        )
-    else:
-        return PretrainedModelLoader(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
             **model_kwargs,
         )
@@ -36,7 +31,10 @@ class PretrainedModelLoader():
                  low_cpu_mem_usage: bool = True,
                  torch_dtype: str = 'bfloat16',
                  rope_theta: float = 10000.,
-                 **kwargs: any):
+                 attn_implementation: str = 'flash_attention_2',  # eager
+                 **other_kwargs: any):
+
+        print(f'-> Using {attn_implementation} attention')
         
         self.loading_kwargs = {
             'pretrained_model_name_or_path': pretrained_model_name_or_path,
@@ -47,14 +45,16 @@ class PretrainedModelLoader():
             'low_cpu_mem_usage': low_cpu_mem_usage,
             'torch_dtype': getattr(torch, torch_dtype),
             'rope_theta': rope_theta,
+            'attn_implementation': attn_implementation,
         }
-        self.extra_kwargs = kwargs
+        for k, v in other_kwargs.items():
+            self.loading_kwargs[k] = v
         
     def load(self):
-        return AutoModelForCausalLM.from_pretrained(**self.loading_kwargs, **self.extra_kwargs)
+        return AutoModelForCausalLM.from_pretrained(**self.loading_kwargs)
 
     def load_tokenizer(self):
-        return AutoTokenizer.from_pretrained(**self.loading_kwargs, **self.extra_kwargs)
+        return AutoTokenizer.from_pretrained(**self.loading_kwargs)
 
 
 class PretrainedLlamaLoader(PretrainedModelLoader):
@@ -81,17 +81,17 @@ class PretrainedLlamaLoader(PretrainedModelLoader):
                 cache_dir, pretrained_model_name_or_path)
             cache_dir = None
         super().__init__(pretrained_model_name_or_path=pretrained_model_name_or_path,
-                         cache_dir=cache_dir)
+                         cache_dir=cache_dir, *args, **kwargs)
         self.loading_kwargs['rope_scaling'] = rope_scaling
 
     def load(self):
-        return LlamaForCausalLM.from_pretrained(**self.loading_kwargs, **self.extra_kwargs)
+        return LlamaForCausalLM.from_pretrained(**self.loading_kwargs)
 
     def load_tokenizer(self):
-        return LlamaTokenizer.from_pretrained(**self.loading_kwargs, **self.extra_kwargs)
+        return LlamaTokenizer.from_pretrained(**self.loading_kwargs)
 
 
 class PretrainedMistralLoader(PretrainedModelLoader):
     def load(self):
-        return MistralForCausalLM.from_pretrained(**self.loading_kwargs, **self.extra_kwargs)
+        return MistralForCausalLM.from_pretrained(**self.loading_kwargs)
         

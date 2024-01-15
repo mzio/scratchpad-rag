@@ -21,10 +21,6 @@ def load_data(data_config: dict, loader_config: dict):
     tokenizer_name = pretrained_model_config['pretrained_model_name_or_path']
     tokenizer_name = tokenizer_name.split('/')[-1]
 
-    # if dataset_config['num_train_samples'] is not None:
-    #     name += f"-nts={dataset_config['num_train_samples']}"
-    # if dataset_config['num_val_samples'] is not None:
-    #     name += f"-nvs={dataset_config['num_val_samples']}"
     if dataset_config['include_support']:
         name += f'-is=1'
 
@@ -44,14 +40,10 @@ def load_data(data_config: dict, loader_config: dict):
     tokenizer.padding_side = 'left'  # for decoder-only generation
 
     # Get initial data
-    # try:
     dataset_kwargs = ['path', 'name', 'cache_dir']
     dataset = load_dataset(
         **{k: v for k, v in dataset_config.items() if k in dataset_kwargs})
-    # except:
-    #     dataset = load_dataset(dataset_config['name'], 
-    #                            dataset_config['path'],
-    #                            cache_dir=dataset_config['cache_dir'])
+
     train_set = dataset['train']
     val_set = dataset['validation']
 
@@ -62,10 +54,6 @@ def load_data(data_config: dict, loader_config: dict):
                             load_from_cache_file=False)
 
     seed = dataset_config['seed']
-    # if dataset_config['num_train_samples'] is not None:
-    #     train_set = subsample_split(train_set, dataset_config['num_train_samples'], seed)
-    # if dataset_config['num_val_samples'] is not None:
-    #     val_set = subsample_split(val_set, dataset_config['num_val_samples'], seed)
 
     # Tokenize and prepare different datasets from source data
     tokenize_kwargs = {
@@ -89,14 +77,6 @@ def load_data(data_config: dict, loader_config: dict):
     train_set_lm_pos = tokenize_dataset(train_set, 'train_lm_pos',  **tokenize_kwargs)
     val_set_lm_pos   = tokenize_dataset(val_set, 'val_lm_pos', **tokenize_kwargs)
 
-    # # 2.1 Contrastive datasets
-    # train_set_contrast = ContrastiveContextDataset(
-    #     anc_dataset=train_set_lm_anc, pos_dataset=train_set_lm_pos
-    # )
-    # val_set_contrast = ContrastiveContextDataset(
-    #     anc_dataset=val_set_lm_anc, pos_dataset=val_set_lm_pos
-    # )
-
     # 3. Evaluation dataloaders
     tokenize_kwargs['include_label'] = False
     tokenize_kwargs['context_source'] = 'context'
@@ -108,7 +88,6 @@ def load_data(data_config: dict, loader_config: dict):
     datasets_lm = {
         'train_lm_anc': train_set_lm_anc, 'val_lm_anc': val_set_lm_anc,
         'train_lm_pos': train_set_lm_pos, 'val_lm_pos': val_set_lm_pos,
-        # 'train_contrast': train_set_contrast, 'val_contrast': val_set_contrast,
     }
     datasets_seq2seq = {
         'val_anc': val_set_anc, 'val_pos': val_set_pos,
@@ -124,7 +103,6 @@ def load_data(data_config: dict, loader_config: dict):
     for k, v in dataloaders.items():  # Make tokenizer accessible
         if v is not None:
             dataloaders[k].dataset.tokenizer = tokenizer
-            # dataloaders[k].dataset.metric = metric
 
     return dataloaders
 
