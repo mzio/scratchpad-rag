@@ -78,7 +78,16 @@ Please see `./notebooks/dev-2.0-dataset_construct-hotpot_qa.ipynb` for a noteboo
 
 <answer>
 ```  
-We then train models over these entire samples with a standard next-token prediction cross-entropy loss.
+We then train models over these entire samples with a standard next-token prediction cross-entropy loss. Just for comparison, a standard RAG + finetuning LLM sample would look like:
+```
+<system prompt>
+
+<question>
+
+<all context>
+
+<answer>
+```
 
 
 ## More example commands
