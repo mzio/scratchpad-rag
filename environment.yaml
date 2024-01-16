@@ -1,0 +1,28 @@
+name: scratchpad-rag
+channels:
+  - conda-forge
+  - pytorch
+  - huggingface
+dependencies:
+  - python>=3.10
+  - pip
+  - pytorch
+  - transformers=4.36.2
+  - datasets=2.11.0
+  - xopen
+  - timm=0.4.12
+  - numpy
+  - pandas
+  - einops
+  - opt_einsum
+  - jupyter
+  - jupyterlab
+  - matplotlib
+  - omegaconf
+  - tqdm
+  - rich
+  - wandb
+  - pip:
+    - bitsandbytes>=0.39.0
+    - peft
+    - flash-attn  # --no-build-isolation

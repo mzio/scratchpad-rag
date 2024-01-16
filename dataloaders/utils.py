@@ -69,7 +69,8 @@ def get_seq2seq_loader(dataset: Dataset, tokenizer: AutoTokenizer,
     collate_fn = DataCollatorForSeq2Seq(
         tokenizer, label_pad_token_id=-100, return_tensors='pt')
     return DataLoader(
-        dataset, shuffle='train' in split, collate_fn=collate_fn, **loader_kwargs)
+        # dataset, shuffle='train' in split, collate_fn=collate_fn, **loader_kwargs)
+        dataset, shuffle=True, collate_fn=collate_fn, **loader_kwargs)  # for evals
 
 
 def get_lm_loader(dataset: Dataset, tokenizer: AutoTokenizer, 
@@ -115,8 +116,13 @@ def tokenize_dataset(dataset: Dataset, split_name: str,
             dataset = dataset.map(partial(tokenize_func, **tokenize_kwargs),
                                   remove_columns=list(dataset.features),
                                   load_from_cache_file=False)
-            dataset.save_to_disk(save_path)
-            print(f'Tokenized {split_name} dataset saved to {save_path}!')
+            try:
+                dataset.save_to_disk(save_path)
+                print(f'Tokenized {split_name} dataset saved to {save_path}!')
+            except Exception as e:
+                print(e)
+                print('Not saving tokenized dataset...')
+                
     return dataset
 
 
@@ -143,9 +149,12 @@ Answer:"""
     if instruct_tune:
         template = '[INST] ' + template + ' [/INST]'
     context = []
-    for ix, c in enumerate(sample[context_source]):
-        context.append(f"Document (Title: {c['title']}) {c['text']}")
-    context = '\n\n'.join(context)
+    if context_source != 'val_closed_book':
+        for ix, c in enumerate(sample[context_source]):
+            context.append(f"Document (Title: {c['title']}) {c['text']}")
+        context = '\n\n'.join(context)
+    else:
+        context = ''
     
     prompt = template.format(context=context, question=sample['question'].capitalize())
     prompt = f'{tokenizer.bos_token}{prompt}'
@@ -160,7 +169,10 @@ Answer:"""
     for ix, c in enumerate(sample['support']):  # Get positions of 
         support = f"\nDocument (Title: {c['title']}) {c['text']}\n"
         support = tokenizer.encode(support, add_special_tokens=False)[1:]
-        start, end = get_target_index(prompt, support)
+        try:
+            start, end = get_target_index(prompt, support)
+        except:
+            start, end = 0, 0
         support_token_indices.append((start, end))
         support_token_start.append(start)
         support_token_end.append(end)

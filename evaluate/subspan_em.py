@@ -100,7 +100,11 @@ def evaluate_mqa(model, eval_loader, tokenizer,
                 
                 for sample_idx in range(len(_input_ids)):
                     if last_answer_only:
-                        _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
+                        # _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
+                        try:
+                            _outputs = outputs[sample_idx].split('</s>')[-2].split('\n')[-1]
+                        except:
+                            _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                     else:
                         _outputs = outputs[sample_idx]
                     em = best_subspan_em(_outputs, [targets[sample_idx]])
