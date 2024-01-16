@@ -158,7 +158,7 @@ def main():
     if args.train_method == 'scratchpad':
         experiment_config.dataset.dataset_config.include_support = True
         experiment_config.trainer.train_method = args.train_method
-        args.run_name += f'-tm={args.train_method}'
+    args.run_name += f'-tm={args.train_method}'
 
     print_header('Experiment Config')
     print_config(experiment_config)

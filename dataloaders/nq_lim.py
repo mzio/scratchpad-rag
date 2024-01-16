@@ -106,6 +106,8 @@ def load_data(data_config: dict, loader_config: dict):
     val_set_anc = tokenize_dataset(val_set, 'val_anc', **tokenize_kwargs)
     tokenize_kwargs['context_source'] = 'support'
     val_set_pos = tokenize_dataset(val_set, 'val_pos', **tokenize_kwargs)
+    tokenize_kwargs['context_source'] = 'val_closed_book'
+    val_set_closed = tokenize_dataset(val_set, 'val_closed_book', **tokenize_kwargs)
     
     # Get dataloaders
     datasets_lm = {
@@ -113,7 +115,8 @@ def load_data(data_config: dict, loader_config: dict):
         'train_lm_pos': train_set_lm_pos, 'val_lm_pos': val_set_lm_pos,
     }
     datasets_seq2seq = {
-        'val_anc': val_set_anc, 'val_pos': val_set_pos,
+        'val_anc': val_set_anc, 'val_pos': val_set_pos, 
+        'val_closed_book': val_set_closed,
     }
     dataloaders = {
         k: get_lm_loader(v, tokenizer, k, **loader_config)

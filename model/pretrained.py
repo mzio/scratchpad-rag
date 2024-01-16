@@ -4,7 +4,8 @@ Classes for loading pretrained models
 import torch
 from os.path import join
 from transformers import LlamaForCausalLM, LlamaTokenizer
-from transformers import MistralForCausalLM, AutoTokenizer
+from transformers import MistralForCausalLM
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
 
 def get_pretrained_loader(pretrained_model_name_or_path: str, 
@@ -16,6 +17,11 @@ def get_pretrained_loader(pretrained_model_name_or_path: str,
         )
     elif 'mistral' in pretrained_model_name_or_path:
         return PretrainedMistralLoader(
+            pretrained_model_name_or_path=pretrained_model_name_or_path,
+            **model_kwargs,
+        )
+    else:
+        return PretrainedModelLoader(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
             **model_kwargs,
         )

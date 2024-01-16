@@ -1,16 +1,5 @@
 """
 Scratchpad RAG demo
-
-python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b_instruct
-
-(cmd 5)
-python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b
-
-(cmd 3)
-python demo.py --experiment_config nq_lim_20_docs --model_config llama2_7b_32k_instruct
-
-(cmd 4)
-python demo.py --experiment_config nq_lim_20_docs_local --model_config mistral_7b --checkpoint_path ./checkpoints/mistral_7b/scratchpad_rag.pt
 """
 from os.path import join
 from xopen import xopen
@@ -18,7 +7,6 @@ import json
 
 import argparse
 from omegaconf import OmegaConf
-# from dataloaders import load_data
 
 import torch
 from transformers import AutoTokenizer
@@ -255,10 +243,9 @@ def main():
         print(decoded_sample)
     
         print_header("Model response")
-        max_new_tokens = input(f'>> To answer, how many tokens to generate? (default 128) ')
+        max_new_tokens = input(f'>> To answer, how many tokens to generate? (default 256) ')
         if max_new_tokens == '':
-            max_new_tokens = 128
-        # _ = input(f'>> (Press enter to display) ')
+            max_new_tokens = 256
         output = generate_response(model, decoded_sample, tokenizer, int(max_new_tokens))
         print('Model response:')
         print(output)
