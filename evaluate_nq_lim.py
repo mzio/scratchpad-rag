@@ -89,6 +89,7 @@ max_new_tokens: {args.max_new_tokens}
 max_samples: 1000
 negative_sample: false
 print_outputs: false
+last_answer_only: {args.last_answer_only}
 eval_start: {args.eval_start}
 eval_end: {args.eval_end}
 """
@@ -104,7 +105,7 @@ eval_end: {args.eval_end}
                    'document_position': [],
                    'subspan_em': []}
 
-    for n_docs in [1, 5, 10, 15, 20]:
+    for n_docs in [1, 5, 10, 15, 20][::-1]:
         if n_docs == 20:  # hacks
             config_path = f'./configs/experiment/nq_lim_{n_docs}_docs_juice.yaml'
         elif n_docs == 1:
