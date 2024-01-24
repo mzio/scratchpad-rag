@@ -14,6 +14,9 @@ def init_wandb(args):
         wandb = None
     else:
         import wandb
+        print("entity", args.wandb_entity)
+        print("run name", args.run_name)
+        print("project name", args.project_name)
         wandb.init(config={},
                    entity=args.wandb_entity,
                    name=args.run_name,

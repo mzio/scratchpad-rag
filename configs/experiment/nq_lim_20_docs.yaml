@@ -11,7 +11,7 @@ dataset:
     cache_dir: './data/qa_data'
   pretrained_model_config: 
     pretrained_model_name_or_path: 'mistralai/Mistral-7B-v0.1'
-    cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
+    cache_dir: './data/neo/hub' #'/juice/scr/scr110/scr/nlp/data/neo/hub/'
   preprocess_config: null
 
 dataloader:
