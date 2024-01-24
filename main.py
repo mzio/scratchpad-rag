@@ -3,6 +3,7 @@ Simple training script
 """
 import os
 from os.path import join
+#test
 
 import argparse
 from omegaconf import OmegaConf
@@ -67,7 +68,7 @@ def get_args():
     parser.add_argument("--replicate", type=int, default=0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--no_wandb", action='store_true', default=None)
-    parser.add_argument("--wandb_entity", type=str, default='hazy-research')
+    parser.add_argument("--wandb_entity", type=str, default='aunell')
 
     args = parser.parse_args()
     args.run_name = f'd={args.experiment_config}-m={args.model_config}-p={args.peft_config}-s={args.seed}'
@@ -179,8 +180,9 @@ def main():
     model_loader = get_pretrained_loader(**model_config['pretrained_config'])
     tokenizer = model_loader.load_tokenizer()
     tokenizer.pad_token_id = tokenizer.eos_token_id
-    tokenizer.padding_side = 'left'
+    tokenizer.padding_side = 'right'
     model = model_loader.load()
+    
 
     if not args.eval_only or args.load_checkpoint:
         model.to(device)

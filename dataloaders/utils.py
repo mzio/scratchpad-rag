@@ -15,7 +15,7 @@ from huggingface_hub import hf_hub_download
 from torch.utils.data import Dataset, DataLoader
 from transformers import AutoTokenizer
 from transformers import DataCollatorForSeq2Seq, DefaultDataCollator
-
+from transformers import GPT2Tokenizer
 
 def convert_to_hf_dataset(dataset, cache_dir: str):
     def gen():
@@ -27,9 +27,12 @@ def convert_to_hf_dataset(dataset, cache_dir: str):
 def get_tokenizer_from_config(model_config):
     # Get tokenizer
     if 'llama' in model_config['pretrained_model_name_or_path']:
-        model_path = join(model_config['cache_dir'], 
-                          model_config['pretrained_model_name_or_path'])
+        model_path = join(model_config['cache_dir'],model_config['pretrained_model_name_or_path'])
         tokenizer = LlamaTokenizer.from_pretrained(model_path)
+    elif 'gpt2' in model_config['pretrained_model_name_or_path']:
+        print('gpt2 tokenizer loaded')
+        model_path = join(model_config['cache_dir'], model_config['pretrained_model_name_or_path'])
+        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
     else:
         tokenizer = AutoTokenizer.from_pretrained(**model_config)
     return tokenizer

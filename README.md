@@ -9,6 +9,16 @@ Please see `environment.yaml` for packages, which we can setup with conda:
 conda env create -f environment.yaml
 conda activate scratchpad-rag
 ```
+If using a machine with cuda version <=10.2, we then need to install dependencies as follows:
+```
+conda install torchvision==0.11.2 -c pytorch --freeze-installed
+conda install torchaudio==0.10.1 -c pytorch --freeze-installed
+conda install transformers=4.36.2 -c huggingface --freeze-installed
+conda install datasets=2.11.0 -c huggingface --freeze-installed
+conda install xopen timm=0.4.12 numpy pandas einops opt_einsum jupyter jupyterlab matplotlib omegaconf tqdm rich wandb --freeze-installed
+pip install 'bitsandbytes>=0.39.0' --no-dependencies
+pip install 'peft' --no-dependencies
+```
 
 ### Config organization
 For running the demo and also training models with Scratchpad-RAG, we provide experiment and model configs in `./configs`. 

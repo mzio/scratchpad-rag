@@ -76,13 +76,20 @@ def evaluate_mqa(model, eval_loader, tokenizer,
     pbar = tqdm(range(eval_start, eval_end), desc='Evaluating', colour='blue')
 
     model.eval()
+    # Handle the out of range IDs or skip this batch
+
     with torch.no_grad():
         for ix, data in enumerate(eval_loader):
             if ix in eval_indices:
-            
                 if negative_sample:
                     data['input_ids'] = data['negative_ids']
                     data['attention_mask'] = data['negative_attention_mask']
+                print('shape of data', data['input_ids'].shape) #1462
+                data['input_ids'] = data['input_ids'] #[:,:512]
+                data['attention_mask'] = data['attention_mask'] #[:, :512]
+                if data['input_ids'].shape[1]>800:
+                    data['input_ids'] = data['input_ids'][:,:800]
+                    data['attention_mask'] = data['attention_mask'][:, :800]
                 _input_ids = data['input_ids']
                 outputs = model.generate(
                     **{k: v.to(model.device) for k, v in data.items()
@@ -90,14 +97,18 @@ def evaluate_mqa(model, eval_loader, tokenizer,
                     max_new_tokens=max_new_tokens,
                     pad_token_id=tokenizer.eos_token_id,
                 )
+                # print('outputs before', outputs.shape)
+                # print('len inputs', len(_input_ids[0]))
                 for sample_idx in range(len(_input_ids)):
+                    # print(tokenizer.batch_decode(outputs, skip_special_tokens=True))
                     outputs = outputs[sample_idx:sample_idx+1, len(_input_ids[sample_idx]):]
                 outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
                 try:
                     targets = tokenizer.batch_decode(data['labels'], skip_special_tokens=True)
                 except:
                     breakpoint()
-                
+                # print('outputs after', outputs)
+                # print('targets are', targets)
                 for sample_idx in range(len(_input_ids)):
                     if last_answer_only:
                         # _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
@@ -107,9 +118,10 @@ def evaluate_mqa(model, eval_loader, tokenizer,
                             _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                     else:
                         _outputs = outputs[sample_idx]
+                    # print('🟡',_outputs) #prints the document (?)
                     em = best_subspan_em(_outputs, [targets[sample_idx]])
         
-                    if print_outputs:
+                    if not print_outputs:
                         print_header('Prompt:')
                         print(tokenizer.decode(_input_ids[sample_idx], skip_special_tokens=True))
                         print_header('Model output:')

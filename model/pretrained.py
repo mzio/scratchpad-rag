@@ -6,6 +6,7 @@ from os.path import join
 from transformers import LlamaForCausalLM, LlamaTokenizer
 from transformers import MistralForCausalLM
 from transformers import AutoModelForCausalLM, AutoTokenizer
+from transformers import GPT2Tokenizer, GPT2LMHeadModel
 
 
 def get_pretrained_loader(pretrained_model_name_or_path: str, 
@@ -17,6 +18,11 @@ def get_pretrained_loader(pretrained_model_name_or_path: str,
         )
     elif 'mistral' in pretrained_model_name_or_path:
         return PretrainedMistralLoader(
+            pretrained_model_name_or_path=pretrained_model_name_or_path,
+            **model_kwargs,
+        )
+    elif 'gpt2' in pretrained_model_name_or_path:
+        return PretrainedGPT2Loader(
             pretrained_model_name_or_path=pretrained_model_name_or_path,
             **model_kwargs,
         )
@@ -37,10 +43,10 @@ class PretrainedModelLoader():
                  low_cpu_mem_usage: bool = True,
                  torch_dtype: str = 'bfloat16',
                  rope_theta: float = 10000.,
-                 attn_implementation: str = 'flash_attention_2',  # eager
+                #  attn_implementation: str = 'flash_attention_2',  # eager
                  **other_kwargs: any):
 
-        print(f'-> Using {attn_implementation} attention')
+        # print(f'-> Using {attn_implementation} attention')
         
         self.loading_kwargs = {
             'pretrained_model_name_or_path': pretrained_model_name_or_path,
@@ -50,8 +56,8 @@ class PretrainedModelLoader():
             'device_map': device_map,
             'low_cpu_mem_usage': low_cpu_mem_usage,
             'torch_dtype': getattr(torch, torch_dtype),
-            'rope_theta': rope_theta,
-            'attn_implementation': attn_implementation,
+            # 'rope_theta': rope_theta,
+            # 'attn_implementation': attn_implementation,
         }
         for k, v in other_kwargs.items():
             self.loading_kwargs[k] = v
@@ -101,3 +107,11 @@ class PretrainedMistralLoader(PretrainedModelLoader):
     def load(self):
         return MistralForCausalLM.from_pretrained(**self.loading_kwargs)
         
+
+class PretrainedGPT2Loader(PretrainedModelLoader):
+    def load(self):
+        return GPT2LMHeadModel.from_pretrained(**self.loading_kwargs)
+
+    def load_tokenizer(self):
+        return GPT2Tokenizer.from_pretrained(**self.loading_kwargs)
+        # return AutoTokenizer.from_pretrained(**self.loading_kwargs)
