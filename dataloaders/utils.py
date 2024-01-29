@@ -32,7 +32,8 @@ def get_tokenizer_from_config(model_config):
     elif 'gpt2' in model_config['pretrained_model_name_or_path']:
         print('gpt2 tokenizer loaded')
         model_path = join(model_config['cache_dir'], model_config['pretrained_model_name_or_path'])
-        tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        # tokenizer = GPT2Tokenizer.from_pretrained("gpt2")
+        tokenizer = AutoTokenizer.from_pretrained("gpt2")
     else:
         tokenizer = AutoTokenizer.from_pretrained(**model_config)
     return tokenizer
@@ -160,9 +161,10 @@ Answer:"""
         context = ''
     
     prompt = template.format(context=context, question=sample['question'].capitalize())
+    
+    print('🔴prompt is', prompt)
     prompt = f'{tokenizer.bos_token}{prompt}'
     prompt = tokenizer.encode(prompt, add_special_tokens=False)
-
     if include_support:  # include support in answer to complete
         sample["answer"] = f"{sample['question'].capitalize()}\n\n" + sample["answer"]
 
@@ -182,11 +184,13 @@ Answer:"""
 
         if include_support:  # include support in answer to complete
             sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n" + sample["answer"]
-    
+            print('🟠include support is:', include_support, 'answer is', sample['answer'])
     if include_label:
+        print('🟡include label is:', include_label, 'so input_ids are prompt +', sample["answer"])
         answer = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False)
     else:
         answer = []
+        print('🟡include label is:', include_label, 'so input_ids are prompt +', sample["answer"])
         target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False)
 
     input_ids = prompt + answer

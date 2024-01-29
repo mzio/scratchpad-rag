@@ -52,15 +52,22 @@ def load_data(data_config: dict, loader_config: dict):
     # Get initial data
     dataset = []
     max_documents = 5  # Set the maximum number of documents to load
-    
+    desired_gold_location = 0
     for gold_at in dataset_config['gold_at']:
         name += f'_{gold_at}'
         data_file = f'nq-open-{total_docs}_total_documents_gold_at_{gold_at}.jsonl.gz'
         with xopen(join(cache_dir, data_file)) as f:
-            for line in f:
+            for line in f: #iterate through support docs and set answer to different location in first max_documents
                 document_examples = json.loads(line)
+                document_examples['ctxs'][desired_gold_location]=document_examples['ctxs'][gold_at] 
+                if gold_at!=desired_gold_location:
+                    del document_examples['ctxs'][gold_at]
                 document_examples['ctxs']=document_examples['ctxs'][:max_documents]
                 dataset.append(document_examples)
+                if desired_gold_location<4:
+                    desired_gold_location+=1
+                else:
+                    desired_gold_location=0
 
     # Split into train and val sets
     train_size = int(len(dataset) * train_ratio)

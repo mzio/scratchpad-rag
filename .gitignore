@@ -161,6 +161,11 @@ cython_debug/
 
 #data stuff
 data/*
+checkpoints/*
+results/*
+
+#outputs for debugging
+outputs/*
 
 #I don't know what this file is but I am afraid to delete it :)
 =0.39.0

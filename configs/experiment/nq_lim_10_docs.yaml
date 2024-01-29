@@ -21,12 +21,12 @@ dataloader:
   pin_memory: true
 
 optimizer:
-  optim: adamw  # _torch_fused
-  lr: 1e-3
+  optim: sgd #adamw  # _torch_fused
+  lr: 1e-3 #[1e-3, 1e-2, 1e-1]
   weight_decay: 5e-4
 
 lr_scheduler:
-  lr_scheduler_type: none
+  lr_scheduler_type: ReduceLROnPlateau #none
 
 trainer:  # HuggingFace Trainer-like arguments  
   name: sft

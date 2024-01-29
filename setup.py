@@ -18,6 +18,7 @@ def init_wandb(args):
         print("run name", args.run_name)
         print("project name", args.project_name)
         wandb.init(config={},
+                   dir = '/dfs/scratch0/aunell/wandb',
                    entity=args.wandb_entity,
                    name=args.run_name,
                    project=args.project_name)

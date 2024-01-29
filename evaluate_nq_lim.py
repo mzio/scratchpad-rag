@@ -32,7 +32,7 @@ def get_args():
     parser.add_argument("--eval_end", type=int, default=1000)
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--no_wandb", action='store_true', default=None)
-    parser.add_argument("--wandb_entity", type=str, default='hazy-research')
+    parser.add_argument("--wandb_entity", type=str, default='aunell')
     parser.add_argument("--max_new_tokens", type=int, default=128)
     parser.add_argument("--last_answer_only", action='store_true', default=None)
     
@@ -88,7 +88,7 @@ def main():
 max_new_tokens: {args.max_new_tokens}
 max_samples: 1000
 negative_sample: false
-print_outputs: false
+print_outputs: true
 eval_start: {args.eval_start}
 eval_end: {args.eval_end}
 """
@@ -104,10 +104,8 @@ eval_end: {args.eval_end}
                    'document_position': [],
                    'subspan_em': []}
 
-    for n_docs in [1, 5, 10, 15, 20]:
-        if n_docs == 20:  # hacks
-            config_path = f'./configs/experiment/nq_lim_{n_docs}_docs_juice.yaml'
-        elif n_docs == 1:
+    for n_docs in [10,20]: #[1, 5, 10, 20]:
+        if n_docs == 1:
             config_path = f'./configs/experiment/nq_lim_5_docs.yaml'
         else:
             config_path = f'./configs/experiment/nq_lim_{n_docs}_docs.yaml'

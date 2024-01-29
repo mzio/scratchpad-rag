@@ -92,12 +92,13 @@ def create_peft_config(model, peft_config: dict):
         )
         # prepare int-8 model for training
         model = prepare_model_for_int8_training(model)
+        
         model = get_peft_model(model, peft_config)
         model.print_trainable_parameters()
 
         _dtype = model.base_model.model.model.layers[0].self_attn.k_proj.weight.dtype
         if _dtype is not torch.int8:
-            model.to(dtype=torch.bfloat16)  # hardcode hack
+            model.to(dtype=torch.bfloat32)  # hardcode hack
         return model, peft_config
     else:
         raise NotImplementedError(f"Sorry PEFT method {peft_config['method']} not implemented yet.")
@@ -189,7 +190,7 @@ def main():
         # Initialize PEFT configs
         model.train()
         peft_config = OmegaConf.load(join('./configs/peft', f'{args.peft_config}.yaml'))
-        model, lora_config = create_peft_config(model, peft_config)
+        # model, lora_config = create_peft_config(model, peft_config)
    
         # Initialize optimizer and scheduler
         optimizer = get_optimizer(model=model, **experiment_config.optimizer)
@@ -207,7 +208,7 @@ def main():
                       'model_config': args.model_config,  # config file names
                       'experiment_config': args.experiment_config,
                       'peft_config': args.peft_config,
-                      'lora': lora_config,
+                    #   'lora': lora_config,
                       'replicate': args.replicate,
                       'eval_split': args.eval_split,}
         flatten_config(OmegaConf.to_container(experiment_config), _flattened, '')

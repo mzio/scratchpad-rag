@@ -114,4 +114,3 @@ class PretrainedGPT2Loader(PretrainedModelLoader):
 
     def load_tokenizer(self):
         return GPT2Tokenizer.from_pretrained(**self.loading_kwargs)
-        # return AutoTokenizer.from_pretrained(**self.loading_kwargs)

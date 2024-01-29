@@ -132,7 +132,9 @@ class OurTrainer():
         eval_for_step = False
         model.to(self.device)
         for ix, data in enumerate(pbar):
-            
+            if data['input_ids'].shape[1]>1024: #check if input tokenization exceeds GPT2 ability
+                # print('skipping data, too big', data['input_ids'].shape[1])
+                continue
             loss, train_metrics = self.compute_loss(model, data, return_outputs=True)
             loss /= accum_iter
             loss.backward()
@@ -143,11 +145,13 @@ class OurTrainer():
                     self.scheduler.step()
                 self.optimizer.zero_grad()
                 self.grad_step += 1
+                # if (self.grad_step%20==0 and self.grad_step!=0):
+                #     break
 
             self.step += 1
             loss = loss.cpu()
             total_loss += loss.item()
-            desc = f"Training epoch {epoch} | loss: {total_loss / (ix + 1):.3f} | lr: {self.optimizer.param_groups[0]['lr']:.5f}"
+            desc = f"Training epoch {epoch} |  loss: {total_loss / (ix + 1):.3f} | lr: {self.optimizer.param_groups[0]['lr']:.5f}"
             desc += f' | gradient step: {self.grad_step}'
             for k, v in train_metrics.items():
                 try:
@@ -226,6 +230,9 @@ class OurTrainer():
         total_loss = 0
         with torch.no_grad():
             for ix, data in enumerate(pbar):
+                if data['input_ids'].shape[1]>1024:
+                    print('skipping data, too big', data['input_ids'].shape[1])
+                    continue
                 loss, eval_metrics = self.compute_loss(model, data, return_outputs=True)
                 loss = loss.cpu()
                 self.eval_metrics['eval/loss'] = loss.item()
@@ -249,7 +256,8 @@ class OurTrainer():
         """
         input_keys = {'input_ids', 'attention_mask'}
         inputs = {k: v.to(model.device) for k, v in data.items() 
-                  if k in input_keys}  
+                  if k in input_keys} 
+        # print('INPUT SHAPE', inputs['input_ids'].shape, inputs['attention_mask'].shape)
         outputs = model(**inputs, output_attentions=False)
         outputs = outputs.get('logits')[..., :-1, :].contiguous()
         targets = data.get('labels')[..., 1:].contiguous()
@@ -258,7 +266,6 @@ class OurTrainer():
         outputs = outputs.view(-1, outputs.shape[-1])
         targets = targets.view(-1).to(outputs.device)
         loss = self.criterion(outputs, targets)
-
         targets = targets.cpu()
         outputs = outputs.cpu()
 
