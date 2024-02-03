@@ -89,6 +89,7 @@ max_new_tokens: {args.max_new_tokens}
 max_samples: 1000
 negative_sample: false
 print_outputs: true
+last_answer_only: {args.last_answer_only}
 eval_start: {args.eval_start}
 eval_end: {args.eval_end}
 """

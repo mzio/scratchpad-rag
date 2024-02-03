@@ -21,8 +21,8 @@ dataloader:
 
 optimizer:
   optim: adamw  # _torch_fused
-  lr: 1e-3
-  weight_decay: 5e-4
+  lr: 1e-4
+  weight_decay: 0.01
 
 lr_scheduler:
   lr_scheduler_type: none
@@ -42,8 +42,8 @@ trainer:  # HuggingFace Trainer-like arguments
   logging_steps: 100
   evaluation_strategy: steps
   max_steps: -1
-  eval_steps: 100
-  max_eval_batches: null
+  eval_steps: 1  # 1000
+  max_eval_batches: 200  # 1000
 
 evaluate:
   max_new_tokens: 128

@@ -4,7 +4,7 @@ Improving robustness of models over long(er) contexts
 ## Getting started
 
 ### Setup dependencies
-Please see `environment.yaml` for packages, which we can setup with conda:
+Please see `environment.yaml` for dependencies. We can set them up with conda:
 ```
 conda env create -f environment.yaml
 conda activate scratchpad-rag
@@ -121,6 +121,8 @@ python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b --ch
 ```
 python demo.py --experiment_config nq_lim_20_docs --model_config mistral_7b --checkpoint_path './checkpoints/mistral_7b/scratchpad_rag.pt'
 ```
+
+Note currently `demo.py` is hardcoded for lost in the middle NaturalQuestions datasets. We can change that later.
 
 More example commands with additional argparse args below. So far we've got configs for testing on Mistral-7B, Mistral-7B-Instruct, Llama2-7B-32K, and Llama2-7B-32K-Instruct models.
 

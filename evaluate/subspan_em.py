@@ -74,7 +74,9 @@ def evaluate_mqa(model, eval_loader, tokenizer,
         
     if max_samples is None: max_samples = len(eval_loader)
     pbar = tqdm(range(eval_start, eval_end), desc='Evaluating', colour='blue')
-
+    
+    print(f'-> Only evaluating last part of answer:', last_answer_only)
+    
     model.eval()
     # Handle the out of range IDs or skip this batch
     context_token_length = 850
@@ -105,7 +107,10 @@ def evaluate_mqa(model, eval_loader, tokenizer,
                     if last_answer_only:
                         # _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                         try:
-                            _outputs = outputs[sample_idx].split('</s>')[-2].split('\n')[-1]
+                            if '</s>' in outputs[sample_idx]:
+                                _outputs = outputs[sample_idx].split('</s>')[-2].split('\n')[-1]
+                            else:  # hacks because Llama2-7b-32k tokenizer messed up
+                                _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                         except:
                             _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                     else:
