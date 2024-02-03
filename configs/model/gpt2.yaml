@@ -5,5 +5,5 @@ pretrained_config:
   quantization: false
   device_map: auto
   low_cpu_mem_usage: true
-  torch_dtype: float16
+  torch_dtype: float32
   rope_theta: 10000.0

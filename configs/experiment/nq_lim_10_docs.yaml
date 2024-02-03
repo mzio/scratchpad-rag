@@ -21,19 +21,20 @@ dataloader:
   pin_memory: true
 
 optimizer:
-  optim: sgd #adamw  # _torch_fused
-  lr: 1e-3 #[1e-3, 1e-2, 1e-1]
-  weight_decay: 5e-4
+  optim: adamw  # _torch_fused
+  lr: .001
+  weight_decay: 0
 
 lr_scheduler:
-  lr_scheduler_type: ReduceLROnPlateau #none
+  lr_scheduler_type: linear
+  num_warmup_steps: 125
 
 trainer:  # HuggingFace Trainer-like arguments  
   name: sft
   bf16: true
   train_split: train_lm_anc
   val_split: val_lm_anc
-  num_train_epochs: 5
+  num_train_epochs: 10
   gradient_accumulation_steps: 8
   seed: 42
   batch_size: 1

@@ -9,7 +9,7 @@ import torch
 from logging_utils import _format_arg
 
 
-def init_wandb(args):
+def init_wandb(args, config={}):
     if args.no_wandb:
         wandb = None
     else:

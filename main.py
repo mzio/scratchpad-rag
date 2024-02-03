@@ -21,6 +21,8 @@ from dataloaders import load_data
 from trainer import get_trainer, get_optimizer, get_scheduler
 from evaluate.subspan_em import evaluate_mqa, plot_histogram_em, plot_lineplot_em
 
+import wandb
+
 
 def get_args():
     parser = argparse.ArgumentParser()
@@ -69,6 +71,7 @@ def get_args():
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--no_wandb", action='store_true', default=None)
     parser.add_argument("--wandb_entity", type=str, default='aunell')
+    parser.add_argument("--do_sweep", default=False, action='store_true')
 
     args = parser.parse_args()
     args.run_name = f'd={args.experiment_config}-m={args.model_config}-p={args.peft_config}-s={args.seed}'
@@ -134,8 +137,12 @@ def set_eval_config_and_args(config, args):
     return config, args
 
 
-def main():
+def train():
     args = get_args()
+    wandb.init(dir = '/dfs/scratch0/aunell/wandb',
+                   entity=args.wandb_entity,
+                   name=args.run_name,
+                   project=args.project_name)
     args.output_dir = join(args.output_dir, args.model_config)
     if not os.path.isdir(args.output_dir):
         os.makedirs(args.output_dir)
@@ -151,6 +158,14 @@ def main():
     # Load model configs
     model_config_path = join('./configs/model', f'{args.model_config}.yaml')
     model_config = OmegaConf.load(model_config_path)
+    
+    if args.do_sweep:
+        print("🧹TRAIN SWEEPING")
+        # Manually update your configurations with wandb config
+        experiment_config.optimizer.lr = wandb.config.lr
+        experiment_config.optimizer.weight_decay = wandb.config.weight_decay
+        experiment_config.lr_scheduler.lr_scheduler_type = wandb.config.lr_scheduler_type
+        experiment_config.lr_scheduler.num_warmup_steps = wandb.config.num_warmup_steps
     
     # Update tokenizer to match model
     for k in ['pretrained_model_name_or_path', 'cache_dir']:
@@ -201,7 +216,7 @@ def main():
         
 
     # WandB
-    wandb = init_wandb(args)
+    # wandb = init_wandb(args)
     if wandb is not None:
         experiment_config['model'] = model_config  # Combine for logging
         _flattened = {'model': model_config,
@@ -278,7 +293,25 @@ def main():
     if not args.eval_only:
         print('├── Find checkpoint at:', trainer.best_val_checkpoint_path)
 
-
+def main():
+    args = get_args()
+    if args.do_sweep:
+        print("🧹MAIN SWEEPING")
+        sweep_config = {
+        "method": "grid",
+        "metric": {"goal": "minimize", "name": "eval/loss"},
+        "parameters": {
+            "lr": {"values":[0.01, 0.001, 1e-4]},
+            "weight_decay": {"values": [0, 5e-4, 1e-3]},
+            "lr_scheduler_type": {"values": ["linear"]},
+            "num_warmup_steps": {"values": [125, 250]},
+        },
+    }
+        sweep_id = wandb.sweep(sweep_config, project="scatchpad-rag")
+        wandb.agent(sweep_id, train)
+    else:
+        train()
+    
 if __name__ == '__main__':
     main()
     

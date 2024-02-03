@@ -162,7 +162,6 @@ Answer:"""
     
     prompt = template.format(context=context, question=sample['question'].capitalize())
     
-    print('🔴prompt is', prompt)
     prompt = f'{tokenizer.bos_token}{prompt}'
     prompt = tokenizer.encode(prompt, add_special_tokens=False)
     if include_support:  # include support in answer to complete
@@ -184,13 +183,10 @@ Answer:"""
 
         if include_support:  # include support in answer to complete
             sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n" + sample["answer"]
-            print('🟠include support is:', include_support, 'answer is', sample['answer'])
     if include_label:
-        print('🟡include label is:', include_label, 'so input_ids are prompt +', sample["answer"])
         answer = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False)
     else:
         answer = []
-        print('🟡include label is:', include_label, 'so input_ids are prompt +', sample["answer"])
         target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False)
 
     input_ids = prompt + answer

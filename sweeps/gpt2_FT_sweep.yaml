@@ -1,0 +1,134 @@
+program: main.py  # replace with your training script
+
+method: grid  # can be "grid", "random", or "bayes"
+metric:
+  name: eval/loss
+  goal: minimize  # can be "minimize" or "maximize"
+
+parameters:
+  optimizer:
+    parameters:
+      lr:
+        values: [0.1, 0.01, 0.001, 1e-4]  # list of learning rates to try
+
+      weight_decay:
+        values: [0, 5e-4, 1e-3]  # list of weight decays to try
+
+  lr_scheduler:
+    parameters:
+      lr_scheduler_type:
+        values: ["linear", "cosine_warmup", "timm_cosine", "none"]  # list of lr scheduler types to try
+
+    num_warmup_steps:
+      values: [0, 125, 250]
+
+  # lr_scheduler:
+  #   parameters:
+  #     num_training_steps:
+  #       value: 2500 #number of training values divided by batch_size which is 1 multiplied by epoch number
+
+  # experiment_config:
+  #   value: nq_lim_10_docs
+  # model_config:
+  #   value: gpt2
+  # peft_config:
+  #   value: lora_r8_a16.qv
+  # eval_split:
+  #   value: val_anc
+  # train_method:
+  #   value: scratchpad
+  # num_train_epochs:
+  #   value: 5
+  # num_train_samples:
+  #   value: 500
+  # num_val_samples:
+  #   value: 500
+  # max_new_tokens:
+  #   value: 250
+
+
+  # dataset:
+  #   parameters:
+  #     name: 
+  #       value: nq_lim
+  #     dataset_config:
+  #       parameters:
+  #         total_docs: 
+  #           value: 10
+  #         gold_at: 
+  #           value: [0,4]
+  #         train_ratio:
+  #           value: 0.8
+  #         seed:
+  #           value: 42
+  #         num_train_samples:
+  #           value: null
+  #         num_val_samples: 
+  #           value: null
+  #         include_support: 
+  #           value: false
+  #         cache_dir: 
+  #           vaue: './data/qa_data'
+  #     pretrained_model_config: 
+  #       parameters:
+  #         pretrained_model_name_or_path: 
+  #           value: 'mistralai/Mistral-7B-v0.1'
+  #         cache_dir: 
+  #           value: './data/neo/hub'
+  #     preprocess_config:
+  #       value: null
+
+  # dataloader:
+  #   parameters:
+  #     batch_size:
+  #       value: 1
+  #     num_workers:
+  #       value: 2
+  #     drop_last:
+  #       value: false
+  #     pin_memory:
+  #       value: true
+
+  # trainer:
+  #   parameters:
+  #     name:
+  #       value: sft
+  #     bf16:
+  #       value: true
+  #     train_split:
+  #       value: train_lm_anc
+  #     val_split:
+  #       value: val_lm_anc
+  #     num_train_epochs:
+  #       value: 5
+  #     gradient_accumulation_steps:
+  #       value: 8
+  #     seed:
+  #       value: 42
+  #     load_best_model_at_end:
+  #       value: true
+  #     greater_is_better:
+  #       value: false
+  #     metric_for_best_model:
+  #       value: eval/loss
+  #     logging_steps:
+  #       value: 100
+  #     evaluation_strategy:
+  #       value: steps
+  #     max_steps:
+  #       value: -1
+  #     eval_steps:
+  #       value: 100
+  #     max_eval_batches:
+  #       value: null
+
+  # evaluate:
+  #   parameters:
+  #     max_new_tokens:
+  #       value: 128
+  #     max_samples:
+  #       value: 100
+  #     negative_sample:
+  #       value: false
+  #     print_outputs:
+  #       value: false
