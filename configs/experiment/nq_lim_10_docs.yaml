@@ -2,16 +2,16 @@ dataset:
   name: nq_lim
   dataset_config:
     total_docs: 10
-    gold_at: [0, 3, 5, 7, 9]
+    gold_at: [0, 4, 9]
     train_ratio: 0.8
     seed: 42
     num_train_samples: null
     num_val_samples: null
     include_support: false
-    cache_dir: '/juice/scr/scr110/scr/nlp/data/lost-in-the-middle/qa_data'
+    cache_dir: './data/qa_data' #'/juice/scr/scr110/scr/nlp/data/lost-in-the-middle/qa_data'
   pretrained_model_config: 
     pretrained_model_name_or_path: 'mistralai/Mistral-7B-v0.1'
-    cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
+    cache_dir: './data/neo/hub' #'/juice/scr/scr110/scr/nlp/data/neo/hub/'
   preprocess_config: null
 
 dataloader:

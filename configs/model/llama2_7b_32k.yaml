@@ -1,6 +1,6 @@
 pretrained_config:
   pretrained_model_name_or_path: 'togethercomputer/LLaMA-2-7B-32K'
-  cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
+  cache_dir: './data/neo/hub' #'/juice/scr/scr110/scr/nlp/data/neo/hub/'
   return_dict: true
   quantization: false
   device_map: auto

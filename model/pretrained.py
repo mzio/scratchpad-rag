@@ -60,7 +60,7 @@ class PretrainedModelLoader():
         return AutoModelForCausalLM.from_pretrained(**self.loading_kwargs)
 
     def load_tokenizer(self):
-        return AutoTokenizer.from_pretrained(**self.loading_kwargs)
+        return AutoTokenizer.from_pretrained(truncation= True, padding=True, **self.loading_kwargs)
 
 
 class PretrainedLlamaLoader(PretrainedModelLoader):

@@ -67,7 +67,7 @@ def get_args():
     parser.add_argument("--replicate", type=int, default=0)
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--no_wandb", action='store_true', default=None)
-    parser.add_argument("--wandb_entity", type=str, default='hazy-research')
+    parser.add_argument("--wandb_entity", type=str, default='aunell')
 
     args = parser.parse_args()
     args.run_name = f'd={args.experiment_config}-m={args.model_config}-p={args.peft_config}-s={args.seed}'
@@ -170,7 +170,13 @@ def main():
         args.run_name = args.checkpoint_path.split('/')[-1].split('.pt')[0]
     _, args = set_eval_config_and_args(experiment_config, args)  # Add back eval configs
 
-    # Get data
+    # Declare context window
+    if "LLaMA" in model_config.pretrained_config.pretrained_model_name_or_path:
+        experiment_config.dataset.dataset_config.context_window = 32000
+    else:
+        experiment_config.dataset.dataset_config.context_window = 4096
+    experiment_config.dataset.dataset_config.max_new_tokens = args.max_new_tokens
+    # Get data   
     dataloaders  = load_data(experiment_config.dataset, experiment_config.dataloader)
     train_loader = dataloaders[experiment_config.trainer.train_split]
     eval_loader  = dataloaders[experiment_config.trainer.val_split]
@@ -202,12 +208,12 @@ def main():
     if wandb is not None:
         experiment_config['model'] = model_config  # Combine for logging
         _flattened = {'model': model_config,
-                      'model_config': args.model_config,  # config file names
-                      'experiment_config': args.experiment_config,
-                      'peft_config': args.peft_config,
-                      'lora': lora_config,
-                      'replicate': args.replicate,
-                      'eval_split': args.eval_split,}
+                        'model_config': args.model_config,  # config file names
+                        'experiment_config': args.experiment_config,
+                        'peft_config': args.peft_config,
+                        'lora': lora_config.to_dict(),
+                        'replicate': args.replicate,
+                        'eval_split': args.eval_split,}
         flatten_config(OmegaConf.to_container(experiment_config), _flattened, '')
         wandb.config.update(_flattened)
 

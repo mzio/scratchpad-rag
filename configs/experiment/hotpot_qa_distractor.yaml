@@ -3,14 +3,14 @@ dataset:
   dataset_config:
     path: hotpot_qa
     name: distractor
-    cache_dir: '/juice/scr/scr110/scr/nlp/data/hotpot-qa-hf'
+    cache_dir: './data/qa_data' # '/juice/scr/scr110/scr/nlp/data/hotpot-qa-hf'
     seed: 42
     num_train_samples: null
     num_val_samples: null
     include_support: false
   pretrained_model_config: 
     pretrained_model_name_or_path: 'mistralai/Mistral-7B-v0.1'
-    cache_dir: '/juice/scr/scr110/scr/nlp/data/neo/hub/'
+    cache_dir:  './data/neo/hub' #'/juice/scr/scr110/scr/nlp/data/neo/hub/'
   preprocess_config: null
 
 dataloader:

@@ -101,7 +101,7 @@ class OurTrainer():
             model = self.train_step(model, epoch)
             if self.args.evaluation_strategy == 'epoch':
                 model = self.eval_step(model, step=self.grad_step)
-                
+                   
         if self.args.load_best_model_at_end:  # Return best checkpoint
             try:
                 state_dict = torch.load(self.best_val_checkpoint_path)['model_state_dict']
@@ -132,7 +132,6 @@ class OurTrainer():
         eval_for_step = False
         model.to(self.device)
         for ix, data in enumerate(pbar):
-            
             loss, train_metrics = self.compute_loss(model, data, return_outputs=True)
             loss /= accum_iter
             loss.backward()

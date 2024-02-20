@@ -40,6 +40,7 @@ def flatten_config(config: dict, flattened: dict, key: str):
     Recursive way to flatten config args for saving to WandB
     """
     for k, v in config.items():
+        print(k, v)
         if type(v) is dict:
             flatten_config(v, flattened, f'{key}{k}_')
         elif type(v) is list:

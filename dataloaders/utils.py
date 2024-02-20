@@ -113,16 +113,17 @@ def tokenize_dataset(dataset: Dataset, split_name: str,
             os.makedirs(save_path)
             print(f'-> Created {save_path}')
             print(f'-> Tokenizing {split_name} dataset...')
+            #for some reason, no adjustments to tokenizer previously change this tokenizer in tokenize_kwargs
             dataset = dataset.map(partial(tokenize_func, **tokenize_kwargs),
                                   remove_columns=list(dataset.features),
                                   load_from_cache_file=False)
+            dataset = dataset.filter(lambda x: not x["discard_sample"])
             try:
                 dataset.save_to_disk(save_path)
                 print(f'Tokenized {split_name} dataset saved to {save_path}!')
             except Exception as e:
                 print(e)
-                print('Not saving tokenized dataset...')
-                
+                print('Not saving tokenized dataset...')        
     return dataset
 
 
@@ -130,7 +131,10 @@ def tokenize_add_label(sample: dict, tokenizer: AutoTokenizer,
                        context_source: str='context', 
                        include_label: bool=True,
                        instruct_tune: bool=False,
-                       include_support: bool=False,):
+                       include_support: bool=False,
+                       truncation: bool=False,
+                       padding: bool=False, 
+                       max_length: int=3584):
     """
     Convert RAG training samples into a single input text and tokenize
     """
@@ -158,7 +162,7 @@ Answer:"""
     
     prompt = template.format(context=context, question=sample['question'].capitalize())
     prompt = f'{tokenizer.bos_token}{prompt}'
-    prompt = tokenizer.encode(prompt, add_special_tokens=False)
+    prompt = tokenizer.encode(prompt, add_special_tokens=False, truncation = truncation, max_length=max_length)
 
     if include_support:  # include support in answer to complete
         sample["answer"] = f"{sample['question'].capitalize()}\n\n" + sample["answer"]
@@ -168,7 +172,7 @@ Answer:"""
     support_token_start, support_token_end = [], []
     for ix, c in enumerate(sample['support']):  # Get positions of 
         support = f"\nDocument (Title: {c['title']}) {c['text']}\n"
-        support = tokenizer.encode(support, add_special_tokens=False)[1:]
+        support = tokenizer.encode(support, add_special_tokens=False, truncation = truncation, max_length=max_length)[1:]
         try:
             start, end = get_target_index(prompt, support)
         except:
@@ -181,12 +185,16 @@ Answer:"""
             sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n" + sample["answer"]
     
     if include_label:
-        answer = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False)
+        answer = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length) 
     else:
         answer = []
-        target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False)
+        target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
 
     input_ids = prompt + answer
+    if len(input_ids) == max_length:
+        discard=True
+    else:
+        discard=False
     attn_mask = [1] * len(input_ids)
     # Negative sample -> just mask out supporting context
     negative_ids = prompt + answer
@@ -207,4 +215,5 @@ Answer:"""
         "support_token_start": support_token_start,
         "support_token_end": support_token_end,
     }
+    return {**sample, "discard_sample": discard}
     return sample

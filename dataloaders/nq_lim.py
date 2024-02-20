@@ -49,7 +49,14 @@ def load_data(data_config: dict, loader_config: dict):
 
     tokenizer.padding_side = 'left'  # for decoder-only generation
 
-    # Get initial data
+    if dataset_config['include_support']:
+        #hack to subtract max new token from maximum model length
+        max_length=dataset_config["context_window"]-dataset_config["max_new_tokens"]
+    else:
+        max_length=dataset_config["context_window"]-dataset_config["max_new_tokens"]
+    print('MAX LENGTH IS', max_length)
+
+    # Get initial data for NQ 10 or 20
     dataset = []
     for gold_at in dataset_config['gold_at']:
         name += f'_{gold_at}'
@@ -57,6 +64,26 @@ def load_data(data_config: dict, loader_config: dict):
         with xopen(join(cache_dir, data_file)) as f:
             for line in f:
                 dataset.append(json.loads(line))
+        
+    #NQ 5 CODE    
+    # dataset = []
+    # max_documents = 5  # Set the maximum number of documents to load
+    # desired_gold_location = 0
+    # for gold_at in dataset_config['gold_at']:
+    #     name += f'_{gold_at}'
+    #     data_file = f'nq-open-{total_docs}_total_documents_gold_at_{gold_at}.jsonl.gz'
+    #     with xopen(join(cache_dir, data_file)) as f:
+    #         for line in f: #iterate through support docs and set answer to different location in first max_documents
+    #             document_examples = json.loads(line)
+    #             document_examples['ctxs'][desired_gold_location]=document_examples['ctxs'][gold_at] 
+    #             if gold_at!=desired_gold_location:
+    #                 del document_examples['ctxs'][gold_at]
+    #             document_examples['ctxs']=document_examples['ctxs'][:max_documents]
+    #             dataset.append(document_examples)
+    #             if desired_gold_location<4:
+    #                 desired_gold_location+=1
+    #             else:
+    #                 desired_gold_location=0
 
     # Split into train and val sets
     train_size = int(len(dataset) * train_ratio)
@@ -87,7 +114,9 @@ def load_data(data_config: dict, loader_config: dict):
         'include_label': True,
         'cache_dir': cache_dir,
         'instruct_tune': 'instruct' in tokenizer_name.lower(),
-        'include_support': dataset_config['include_support'],
+        'include_support': dataset_config['include_support'], 
+        'truncation': True,
+        'max_length': max_length,
     }
 
     # 1. SFT datasets on entire context (baseline)
@@ -130,6 +159,11 @@ def load_data(data_config: dict, loader_config: dict):
         if v is not None:
             dataloaders[k].dataset.tokenizer = tokenizer
 
+    # for name, dataset in datasets_seq2seq.items():
+    #     count=0
+    #     for batch in dataset:
+    #         count+=(len(batch['attention_mask'])==3584)
+    #     print('🐽 dataset:', name, ':', count, ' out of 1000 examples were truncated')
     return dataloaders
 
 
