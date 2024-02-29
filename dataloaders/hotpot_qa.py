@@ -39,13 +39,23 @@ def load_data(data_config: dict, loader_config: dict):
 
     tokenizer.padding_side = 'left'  # for decoder-only generation
 
+    #hack to subtract max new token from maximum model length
+    max_length=dataset_config["context_window"]-dataset_config["max_new_tokens"]
+
     # Get initial data
     dataset_kwargs = ['path', 'name', 'cache_dir']
     dataset = load_dataset(
         **{k: v for k, v in dataset_config.items() if k in dataset_kwargs})
 
     train_set = dataset['train']
+    seed = dataset_config['seed']
     val_set = dataset['validation']
+    if dataset_config['num_train_samples'] is not None:
+        train_set = subsample_split(train_set, dataset_config['num_train_samples'], seed)
+    if dataset_config['num_val_samples'] is not None:
+        val_set = subsample_split(val_set, dataset_config['num_val_samples'], seed)
+    train_set = convert_to_hf_dataset(train_set, cache_dir)
+    val_set = convert_to_hf_dataset(val_set, cache_dir)
 
     # Convert to question, answer, context, support format
     train_set = train_set.map(process_sample, remove_columns=list(train_set.features),
@@ -53,7 +63,6 @@ def load_data(data_config: dict, loader_config: dict):
     val_set   = val_set.map(process_sample, remove_columns=list(val_set.features),
                             load_from_cache_file=False)
 
-    seed = dataset_config['seed']
 
     # Tokenize and prepare different datasets from source data
     tokenize_kwargs = {
@@ -65,6 +74,8 @@ def load_data(data_config: dict, loader_config: dict):
         'cache_dir': cache_dir,
         'instruct_tune': 'instruct' in tokenizer_name.lower(),
         'include_support': dataset_config['include_support'],
+        'truncation': True,
+        'max_length': max_length,
     }
 
     # 1. SFT datasets on entire context (baseline)

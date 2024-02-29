@@ -105,13 +105,13 @@ eval_end: {args.eval_end}
                    'document_position': [],
                    'subspan_em': []}
 
-    for n_docs in [1, 5, 10, 15, 20][::-1]:
-        if n_docs == 20:  # hacks
-            config_path = f'./configs/experiment/nq_lim_{n_docs}_docs_juice.yaml'
-        elif n_docs == 1:
-            config_path = f'./configs/experiment/nq_lim_5_docs.yaml'
-        else:
-            config_path = f'./configs/experiment/nq_lim_{n_docs}_docs.yaml'
+    for n_docs in [20][::-1]:
+        # if n_docs == 20:  # hacks
+        #     config_path = f'./configs/experiment/nq_lim_{n_docs}_docs_juice.yaml'
+        # elif n_docs == 1:
+        #     config_path = f'./configs/experiment/nq_lim_5_docs.yaml'
+        # else:
+        config_path = f'./configs/experiment/nq_lim_{n_docs}_docs.yaml'
         config = OmegaConf.load(config_path)
         # Update tokenizer to match model
         for k in ['pretrained_model_name_or_path', 'cache_dir']:
@@ -132,9 +132,10 @@ eval_end: {args.eval_end}
         results_avg['subspan_em'].append(mean_em)
         
         # Slice by supporting document index
+        output=args.output_dir+args.run_name+'.png'
         em_by_doc_idx = plot_lineplot_em(eval_metrics, 'support_doc_index',
                                          f'well well well... lost in the middle?', 
-                                         f'{n_docs} docs', show_plot=False)
+                                         f'{n_docs} docs', show_plot=False, output=output)
         logging_metrics = {}
         for k, v in em_by_doc_idx.items():
             logging_metrics[f'n_docs={n_docs}/{k}'] = v

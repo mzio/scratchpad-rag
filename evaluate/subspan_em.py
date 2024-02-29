@@ -41,10 +41,12 @@ def normalize_answer(s: str) -> str:
 # Copied from https://github.com/nelson-liu/lost-in-the-middle/blob/main/src/lost_in_the_middle/metrics.py
 def best_subspan_em(prediction: str, ground_truths: List[str]) -> float:
     normalized_prediction = normalize_answer(prediction)
-
+    ground_truths = ground_truths[0].split(',') #IN TRIVIAQA CASE
     for ground_truth in ground_truths:
         normalized_ground_truth = normalize_answer(ground_truth)
-        if normalized_ground_truth.lower() in normalized_prediction.lower():
+        # if normalized_ground_truth.lower() in normalized_prediction.lower():
+        #     return 1.0
+        if normalized_prediction.lower() in normalized_ground_truth.lower() or normalized_ground_truth.lower() in normalized_prediction.lower():
             return 1.0
     return 0.0
 
@@ -95,17 +97,19 @@ def evaluate_mqa(model, eval_loader, tokenizer,
                 for sample_idx in range(len(_input_ids)):
                     outputs = outputs[sample_idx:sample_idx+1, len(_input_ids[sample_idx]):]
                 outputs = tokenizer.batch_decode(outputs, skip_special_tokens=True)
-                try:
-                    targets = tokenizer.batch_decode(data['labels'], skip_special_tokens=True)
-                except:
-                    breakpoint()
-                
+                # try:
+                targets = tokenizer.batch_decode(data['labels'], skip_special_tokens=True)
+                # except:
+                #     breakpoint()
+                for i in range(len(_input_ids)):
+                    print(tokenizer.decode(_input_ids[i], skip_special_tokens=True))
                 for sample_idx in range(len(_input_ids)):
                     if last_answer_only:
                         # _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                         try:
                             if '</s>' in outputs[sample_idx]:
-                                _outputs = outputs[sample_idx].split('</s>')[-2].split('\n')[-1]
+                                _outputs = outputs[sample_idx].split('</s>')[0].split('\n')[-1]
+                                # _outputs = outputs[sample_idx].split('</s>')[-2].split('\n')[-1]
                             else:  # hacks because Llama2-7b-32k tokenizer messed up
                                 _outputs = outputs[sample_idx].split('\n')[-1]  # outputs[sample_idx]
                         except:
@@ -172,7 +176,7 @@ def plot_histogram_em(eval_metrics: dict, title: str = None,
 def plot_lineplot_em(eval_metrics: dict, 
                      position_feature: str = 'support_doc_index',
                      title: str = None,
-                     label: str = None, show_plot: bool = True):
+                     label: str = None, show_plot: bool = True, output='plot.png'):
     """
     Plot lineplot comparing supporting doc index vs 
     exact-match accuracy
@@ -186,6 +190,7 @@ def plot_lineplot_em(eval_metrics: dict,
         subspan_ems.append(np.mean(eval_metrics['subspan_em'][_idx]))
 
     plt.plot(doc_indices, subspan_ems, marker='o', label=label)
+    # plt.savefig(output)
     if show_plot:
         plt.grid()
         plt.title(title)

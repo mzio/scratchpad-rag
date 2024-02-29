@@ -7,13 +7,14 @@ from typing import Callable
 from functools import partial
 
 import numpy as np
+import pandas as pd
 
 from datasets import load_from_disk
 from datasets import Dataset as HFDataset
 from huggingface_hub import hf_hub_download
 
 from torch.utils.data import Dataset, DataLoader
-from transformers import AutoTokenizer
+from transformers import AutoTokenizer, LlamaTokenizer
 from transformers import DataCollatorForSeq2Seq, DefaultDataCollator
 
 
@@ -26,10 +27,11 @@ def convert_to_hf_dataset(dataset, cache_dir: str):
 
 def get_tokenizer_from_config(model_config):
     # Get tokenizer
-    if 'llama' in model_config['pretrained_model_name_or_path']:
+    if 'LLaMA' in model_config['pretrained_model_name_or_path']:
         model_path = join(model_config['cache_dir'], 
                           model_config['pretrained_model_name_or_path'])
-        tokenizer = LlamaTokenizer.from_pretrained(model_path)
+        tokenizer = AutoTokenizer.from_pretrained("hf-internal-testing/llama-tokenizer")
+        # LlamaTokenizer.from_pretrained(model_path)
     else:
         tokenizer = AutoTokenizer.from_pretrained(**model_config)
     return tokenizer
@@ -117,7 +119,13 @@ def tokenize_dataset(dataset: Dataset, split_name: str,
             dataset = dataset.map(partial(tokenize_func, **tokenize_kwargs),
                                   remove_columns=list(dataset.features),
                                   load_from_cache_file=False)
-            dataset = dataset.filter(lambda x: not x["discard_sample"])
+            # count_discard = sum(1 for item in dataset if item.get('discard_sample', False))
+            print('🦆 data before discarding truncated',dataset)
+            count_true = sum(1 for x in dataset if x["discard_sample"] == True)
+            data = [x for x in dataset if x["discard_sample"] == False]
+            dataset = HFDataset.from_pandas(pd.DataFrame(data=data))
+            # dataset = dataset.filter(lambda x: x['discard_sample']==False) #broken??
+            print('🪿dataset',dataset)
             try:
                 dataset.save_to_disk(save_path)
                 print(f'Tokenized {split_name} dataset saved to {save_path}!')
@@ -138,6 +146,9 @@ def tokenize_add_label(sample: dict, tokenizer: AutoTokenizer,
     """
     Convert RAG training samples into a single input text and tokenize
     """
+    #flag from checking if negative context is empty, so we need to discard sample
+    discard_early=False 
+
     question = sample['question']
     if question[-1] != '?': question += '?'  # Add punctuation
     template = f"""Write a high-quality answer for the given question using only the provided context (some of which might be irrelevant).
@@ -156,6 +167,14 @@ Answer:"""
     if context_source != 'val_closed_book':
         for ix, c in enumerate(sample[context_source]):
             context.append(f"Document (Title: {c['title']}) {c['text']}")
+        if (context_source=='context' and len(sample[context_source])==1):
+            # print('discard_early')
+            # print(sample[context_source])
+            discard_early=True
+        # else:
+        #     print('context length', len(context))
+            # print(sample[context_source])
+            # print(context_source)
         context = '\n\n'.join(context)
     else:
         context = ''
@@ -163,7 +182,6 @@ Answer:"""
     prompt = template.format(context=context, question=sample['question'].capitalize())
     prompt = f'{tokenizer.bos_token}{prompt}'
     prompt = tokenizer.encode(prompt, add_special_tokens=False, truncation = truncation, max_length=max_length)
-
     if include_support:  # include support in answer to complete
         sample["answer"] = f"{sample['question'].capitalize()}\n\n" + sample["answer"]
 
@@ -183,15 +201,18 @@ Answer:"""
 
         if include_support:  # include support in answer to complete
             sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n" + sample["answer"]
-    
     if include_label:
         answer = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length) 
     else:
         answer = []
-        target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
+        try: #for trivia QA case where many answer targets
+            all_answers_string = ','.join(sample["all_answers"])
+            target = tokenizer.encode(f'{all_answers_string}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
+        except:
+            target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
 
     input_ids = prompt + answer
-    if len(input_ids) == max_length:
+    if len(input_ids) == max_length or discard_early:
         discard=True
     else:
         discard=False
@@ -216,4 +237,4 @@ Answer:"""
         "support_token_end": support_token_end,
     }
     return {**sample, "discard_sample": discard}
-    return sample
+    # return sample

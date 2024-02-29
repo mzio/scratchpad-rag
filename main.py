@@ -207,13 +207,21 @@ def main():
     wandb = init_wandb(args)
     if wandb is not None:
         experiment_config['model'] = model_config  # Combine for logging
-        _flattened = {'model': model_config,
-                        'model_config': args.model_config,  # config file names
-                        'experiment_config': args.experiment_config,
-                        'peft_config': args.peft_config,
-                        'lora': lora_config.to_dict(),
-                        'replicate': args.replicate,
-                        'eval_split': args.eval_split,}
+        if lora_config:
+            _flattened = {'model': model_config,
+                            'model_config': args.model_config,  # config file names
+                            'experiment_config': args.experiment_config,
+                            'peft_config': args.peft_config,
+                            'lora': lora_config.to_dict(),
+                            'replicate': args.replicate,
+                            'eval_split': args.eval_split,}
+        else: #zero shot case
+            _flattened = {'model': model_config,
+                            'model_config': args.model_config,  # config file names
+                            'experiment_config': args.experiment_config,
+                            'peft_config': args.peft_config,
+                            'replicate': args.replicate,
+                            'eval_split': args.eval_split,}
         flatten_config(OmegaConf.to_container(experiment_config), _flattened, '')
         wandb.config.update(_flattened)
 

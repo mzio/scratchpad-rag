@@ -49,12 +49,8 @@ def load_data(data_config: dict, loader_config: dict):
 
     tokenizer.padding_side = 'left'  # for decoder-only generation
 
-    if dataset_config['include_support']:
-        #hack to subtract max new token from maximum model length
-        max_length=dataset_config["context_window"]-dataset_config["max_new_tokens"]
-    else:
-        max_length=dataset_config["context_window"]-dataset_config["max_new_tokens"]
-    print('MAX LENGTH IS', max_length)
+    #hack to subtract max new token from maximum model length
+    max_length=dataset_config["context_window"]-dataset_config["max_new_tokens"]
 
     # Get initial data for NQ 10 or 20
     dataset = []
@@ -158,12 +154,6 @@ def load_data(data_config: dict, loader_config: dict):
     for k, v in dataloaders.items():  # Make tokenizer accessible
         if v is not None:
             dataloaders[k].dataset.tokenizer = tokenizer
-
-    # for name, dataset in datasets_seq2seq.items():
-    #     count=0
-    #     for batch in dataset:
-    #         count+=(len(batch['attention_mask'])==3584)
-    #     print('🐽 dataset:', name, ':', count, ' out of 1000 examples were truncated')
     return dataloaders
 
 
