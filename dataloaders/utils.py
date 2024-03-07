@@ -120,12 +120,10 @@ def tokenize_dataset(dataset: Dataset, split_name: str,
                                   remove_columns=list(dataset.features),
                                   load_from_cache_file=False)
             # count_discard = sum(1 for item in dataset if item.get('discard_sample', False))
-            print('🦆 data before discarding truncated',dataset)
-            count_true = sum(1 for x in dataset if x["discard_sample"] == True)
             data = [x for x in dataset if x["discard_sample"] == False]
             dataset = HFDataset.from_pandas(pd.DataFrame(data=data))
             # dataset = dataset.filter(lambda x: x['discard_sample']==False) #broken??
-            print('🪿dataset',dataset)
+            # print('🪿dataset',dataset)
             try:
                 dataset.save_to_disk(save_path)
                 print(f'Tokenized {split_name} dataset saved to {save_path}!')
@@ -137,6 +135,7 @@ def tokenize_dataset(dataset: Dataset, split_name: str,
 
 def tokenize_add_label(sample: dict, tokenizer: AutoTokenizer, 
                        context_source: str='context', 
+                       eval_type: str = 'em',
                        include_label: bool=True,
                        instruct_tune: bool=False,
                        include_support: bool=False,
@@ -168,13 +167,7 @@ Answer:"""
         for ix, c in enumerate(sample[context_source]):
             context.append(f"Document (Title: {c['title']}) {c['text']}")
         if (context_source=='context' and len(sample[context_source])==1):
-            # print('discard_early')
-            # print(sample[context_source])
             discard_early=True
-        # else:
-        #     print('context length', len(context))
-            # print(sample[context_source])
-            # print(context_source)
         context = '\n\n'.join(context)
     else:
         context = ''
@@ -182,14 +175,23 @@ Answer:"""
     prompt = template.format(context=context, question=sample['question'].capitalize())
     prompt = f'{tokenizer.bos_token}{prompt}'
     prompt = tokenizer.encode(prompt, add_special_tokens=False, truncation = truncation, max_length=max_length)
+    final_answer= sample["answer"]
     if include_support:  # include support in answer to complete
         sample["answer"] = f"{sample['question'].capitalize()}\n\n" + sample["answer"]
 
     # Add supporting context positions -> position where they end in context
     support_token_indices = []
-    support_token_start, support_token_end = [], []
+    support_token_start, support_token_end, support_doc= [], [], []
     for ix, c in enumerate(sample['support']):  # Get positions of 
         support = f"\nDocument (Title: {c['title']}) {c['text']}\n"
+        try: #for TriviaQA case
+            for ans in sample['all_answers']:
+                if ans in support:
+                    discard_early=False
+                    break
+                discard_early=True
+        except:
+            pass
         support = tokenizer.encode(support, add_special_tokens=False, truncation = truncation, max_length=max_length)[1:]
         try:
             start, end = get_target_index(prompt, support)
@@ -198,19 +200,45 @@ Answer:"""
         support_token_indices.append((start, end))
         support_token_start.append(start)
         support_token_end.append(end)
-
+        support_doc.append(support)
         if include_support:  # include support in answer to complete
             sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n" + sample["answer"]
+        if eval_type == 'doc_retrieval':
+            if len(sample['support'])>1:
+                # print('hotpotQA data')
+                sample["answer"]=""
+                for ix, c in enumerate(sample['support']):
+                    sample["answer"]+=f"Document (Title: {c['title']}) {c['text']}\n\n"
+            else:
+                sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n"
+        if eval_type == 'multi':
+            if len(sample['support'])>1:
+                print('hotpotQA data')
+                sample["answer"]=""
+                for ix, c in enumerate(sample['support']):
+                    sample["answer"]+=f"Document (Title: {c['title']}) {c['text']}\n\n"
+            else:
+                sample["answer"] = f"Document (Title: {c['title']}) {c['text']}\n\n"
+            # print('final answer', final_answer)
+            sample["answer"]= sample["answer"] + final_answer
     if include_label:
         answer = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length) 
     else:
         answer = []
+        # if eval_type=='doc_retrieval':
+        #     target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
+        # else:
         try: #for trivia QA case where many answer targets
-            all_answers_string = ','.join(sample["all_answers"])
-            target = tokenizer.encode(f'{all_answers_string}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
+                all_answers_string = ','.join(sample["all_answers"])
+                if eval_type=='multi':
+                    target_pre_tokenized = sample['answer']+all_answers_string
+                    target = tokenizer.encode(f'{target_pre_tokenized}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
+                else:
+                    target = tokenizer.encode(f'{all_answers_string}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
         except:
-            target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
-
+                target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
+    if eval_type== 'doc_retrieval':
+        target = tokenizer.encode(f'{sample["answer"]}{tokenizer.eos_token}', add_special_tokens=False, truncation = truncation, max_length=max_length)
     input_ids = prompt + answer
     if len(input_ids) == max_length or discard_early:
         discard=True
@@ -237,4 +265,3 @@ Answer:"""
         "support_token_end": support_token_end,
     }
     return {**sample, "discard_sample": discard}
-    # return sample

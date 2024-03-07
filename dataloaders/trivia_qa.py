@@ -25,6 +25,12 @@ def load_data(data_config: dict, loader_config: dict):
 
     if dataset_config['include_support']:
         name += f'-is=1'
+    if data_config['eval_type']=='doc_retrieval':
+        name+=f'doc_ret'
+    elif data_config['eval_type']=='multi':
+        name+=f'multi'
+    elif data_config['eval_type']=='em':
+        name+=f'em'
 
     # Misc. setup
     cache_dir = dataset_config['cache_dir']
@@ -50,7 +56,7 @@ def load_data(data_config: dict, loader_config: dict):
     #     **{k: v for k, v in dataset_config.items() if k in dataset_kwargs})
     file_path='/scr-ssd/aunell/scratchpad-rag/data/qa_data/biencoder-trivia-dev.json.gz'
     with gzip.open(file_path, 'rt', encoding='utf-8') as file:
-        dataset = json.load(file)
+        dataset = json.load(file)      
 
     total_samples = len(dataset)
     train_set = dataset[:int(.8*total_samples)]
@@ -83,6 +89,7 @@ def load_data(data_config: dict, loader_config: dict):
         'include_support': dataset_config['include_support'],
         'truncation': True,
         'max_length': max_length,
+        'eval_type': data_config['eval_type'],
     }
 
     # 1. SFT datasets on entire context (baseline)

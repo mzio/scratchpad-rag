@@ -29,6 +29,7 @@ def get_args():
     parser.add_argument("--model_config", type=str, default=None)
     parser.add_argument("--peft_config", type=str, default=None)
     parser.add_argument("--train_method", type=str, default=None)
+    parser.add_argument("--eval_type", type=str, default='em')
 
     # Override default configs
     ## Training
@@ -158,6 +159,11 @@ def main():
     if args.train_method == 'scratchpad':
         experiment_config.dataset.dataset_config.include_support = True
         experiment_config.trainer.train_method = args.train_method
+    
+
+    experiment_config.dataset.eval_type = args.eval_type
+    experiment_config.evaluate.eval_type = args.eval_type
+
     args.run_name += f'-tm={args.train_method}'
 
     print_header('Experiment Config')

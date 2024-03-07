@@ -49,5 +49,7 @@ evaluate:
   max_samples: 100
   negative_sample: false
   print_outputs: false
+  data_type: tqa
+  eval_type: em
   
   

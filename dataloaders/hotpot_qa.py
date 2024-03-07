@@ -23,6 +23,12 @@ def load_data(data_config: dict, loader_config: dict):
 
     if dataset_config['include_support']:
         name += f'-is=1'
+    if data_config['eval_type']=='doc_retrieval':
+        name+=f'doc_ret'
+    elif data_config['eval_type']=='multi':
+        name+=f'multi'
+    elif data_config['eval_type']=='em':
+        name+=f'em'
 
     # Misc. setup
     cache_dir = dataset_config['cache_dir']
@@ -76,6 +82,7 @@ def load_data(data_config: dict, loader_config: dict):
         'include_support': dataset_config['include_support'],
         'truncation': True,
         'max_length': max_length,
+        'eval_type': data_config['eval_type']
     }
 
     # 1. SFT datasets on entire context (baseline)
