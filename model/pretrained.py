@@ -99,5 +99,5 @@ class PretrainedLlamaLoader(PretrainedModelLoader):
 
 class PretrainedMistralLoader(PretrainedModelLoader):
     def load(self):
-        return MistralForCausalLM.from_pretrained(**self.loading_kwargs)
+        return MistralForCausalLM.from_pretrained(output_hidden_states=True, **self.loading_kwargs)
         

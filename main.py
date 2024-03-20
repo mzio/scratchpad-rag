@@ -18,7 +18,7 @@ from model.pretrained import get_pretrained_loader
 from dataloaders import load_data
 
 from trainer import get_trainer, get_optimizer, get_scheduler
-from evaluate.subspan_em import evaluate_mqa, plot_histogram_em, plot_lineplot_em
+from evaluate.subspan_em import evaluate_mqa, plot_histogram_em, plot_lineplot_em, plot_embeddings
 
 
 def get_args():
@@ -281,6 +281,7 @@ def main():
     logging_metrics = {'Overall EM': mean_em}
     # Slice by supporting document index
     em_by_doc_idx = plot_lineplot_em(eval_metrics, show_plot=False)
+    embedding = plot_embeddings(eval_metrics, show_plot=True)
     for idx, doc_pos in enumerate(em_by_doc_idx['document_position']):
         _em = em_by_doc_idx['subspan_em'][idx]
         print(f'├── Support Document at {doc_pos} Supspan EM: {_em:.4f}')
